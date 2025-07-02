@@ -26,6 +26,11 @@ function App() {
   }, []);
 
   const [politici, setPolitici] = useState([]);
+  const position = [...new Set(politici.map(p => p.position))];
+  position.unshift("All");
+  console.log(position);
+
+  const [filterPosition, setFilterPosition] = useState("");
   const [name, setName] = useState("");
 
 
@@ -62,8 +67,12 @@ function App() {
     // Reset the search input after submission
   }
 
-  const filteredPolitici = politici.filter(p => p.name.toLowerCase().includes(name.toLowerCase()) &&
-    p.biography.toLowerCase().includes(name.toLowerCase()));
+
+  const filteredPolitici = politici.filter(p => {
+    if(p.name.toLowerCase().includes(name.toLowerCase()) &&
+    p.biography.toLowerCase().includes(name.toLowerCase()) &&  p.position === filterPosition)
+      return p;
+  });
 
 
 
@@ -71,6 +80,11 @@ function App() {
   return <>
     <div className="d-flex justify-content-between mt-5">
       <h1>Politicians</h1>
+      <div>
+        <select value={filterPosition} onChange={e => setFilterPosition(e.target.value)}>
+        {/* <option value="All">All Positions</option> */}
+        {position.map((pos, i) => <option key={i} value={pos}>{pos}</option>)}
+      </select>
       <form onSubmit={handleSubmit} className="d-flex align-items-center">
 
         <label htmlFor="search" className="visually-hidden">Cerca Politici</label>
@@ -81,12 +95,13 @@ function App() {
         />
 
       </form>
+      </div>
     </div>
     <div className="d-flex justify-content-center">
 
 
       <div className="politici-cards p-3 row col-6 flex-wrap gap-3">
-        {name === "" ? politici.map((p, i) => <CardsStyle p={p} key={i} />) :
+        {name === "" && filterPosition === "All" ? politici.map((p, i) => <CardsStyle p={p} key={i} />) :
           filteredPolitici.map((p, i) => <CardsStyle p={p} key={i} />)}
         
 
