@@ -1,9 +1,9 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 
-const CardsStyle = ({ p }) => {
+const CardsStyle = memo(({ p }) => {
   return <>
     <div className="card ">
       <img src={p.image} className="card-img-top" alt={p.name} />
@@ -15,7 +15,7 @@ const CardsStyle = ({ p }) => {
       </div>
     </div>
   </>
-};
+});
 
 
 
@@ -55,14 +55,9 @@ function App() {
   //   });
 
 
-  function handleSubmit(e) {
+  const handleSubmit = (e)=>  {
     e.preventDefault();
     fetchPoliticians();
-
-    console.log(politici);
-    console.log("Submitted name:", name);
-    
-    setName("");
 
     // Reset the search input after submission
   }
@@ -84,7 +79,6 @@ function App() {
           onChange={(e) => setName(e.target.value)}
           className="form-control"
         />
-        <button type="submit" className="btn btn-primary">Search</button>
 
       </form>
     </div>
