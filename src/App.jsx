@@ -1,9 +1,10 @@
 
-import { useEffect, useState, memo } from "react";
+import { useEffect, useState, memo, useMemo } from "react";
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 
-const CardsStyle = memo(({ p }) => {
+const CardsStyle = ({ p }) => {
+  console.log("card");
   return <>
     <div className="card ">
       <img src={p.image} className="card-img-top" alt={p.name} />
@@ -15,19 +16,26 @@ const CardsStyle = memo(({ p }) => {
       </div>
     </div>
   </>
-});
+};
 
+const MemorizedPoliticiansCard = memo(CardsStyle);
 
 
 function App() {
 
-  useEffect(() => { 
+  useEffect(() => {
     fetchPoliticians();
   }, []);
 
+
+
   const [politici, setPolitici] = useState([]);
-  const position = [...new Set(politici.map(p => p.position))];
-  position.unshift("All");
+  const position = useMemo(() => { return politici.reduce((acc, politico) => {
+    if(!acc.includes(politico.position)){
+      return [...acc, politico.position];
+    }
+    return acc;
+  },[])}, [politici]);
   console.log(position);
 
   const [filterPosition, setFilterPosition] = useState("");
@@ -59,20 +67,22 @@ function App() {
   //     console.error("Error:", err);
   //   });
 
-
-  const handleSubmit = (e)=>  {
-    e.preventDefault();
-    fetchPoliticians();
-
-    // Reset the search input after submission
-  }
+  // Reset the search input after submission
 
 
-  const filteredPolitici = politici.filter(p => {
-    if(p.name.toLowerCase().includes(name.toLowerCase()) &&
-    p.biography.toLowerCase().includes(name.toLowerCase()) &&  p.position === filterPosition)
-      return p;
-  });
+
+  const filteredPolitici = useMemo(() => {
+    return politici.filter((p) => {
+      const isInName = p.name.toLowerCase().includes(name.toLowerCase());
+      const isInBiography = p.biography.toLowerCase().includes(name.toLowerCase());
+      const isPositionValid = filterPosition === "" || p.position === filterPosition;
+      //const isInFilterPosition = p.position === filterPosition;
+
+      return (isInBiography || isInName) && isPositionValid;
+    })
+  }, [politici, name, filterPosition]);
+
+
 
 
 
@@ -82,28 +92,27 @@ function App() {
       <h1>Politicians</h1>
       <div>
         <select value={filterPosition} onChange={e => setFilterPosition(e.target.value)}>
-        {/* <option value="All">All Positions</option> */}
-        {position.map((pos, i) => <option key={i} value={pos}>{pos}</option>)}
+        <option value="">All Positions</option>
+         {position.map((pos, i) => <option key={i} value={pos}>{pos}</option>)}
       </select>
-      <form onSubmit={handleSubmit} className="d-flex align-items-center">
 
         <label htmlFor="search" className="visually-hidden">Cerca Politici</label>
         <input type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="form-control"
+          placeholder="Cerca Politici o biografia"
         />
 
-      </form>
       </div>
     </div>
     <div className="d-flex justify-content-center">
 
 
       <div className="politici-cards p-3 row col-6 flex-wrap gap-3">
-        {name === "" && filterPosition === "All" ? politici.map((p, i) => <CardsStyle p={p} key={i} />) :
-          filteredPolitici.map((p, i) => <CardsStyle p={p} key={i} />)}
         
+          {filteredPolitici.map((p, i) => <MemorizedPoliticiansCard p={p} key={i} />)}
+
 
       </div>
     </div>
